@@ -25,6 +25,11 @@ jobs:
       - run: corepack enable
       - run: corepack prepare pnpm@10.17.1 --activate
       - run: pnpm install --frozen-lockfile
+      - name: Check out the experimental source patch
+        run: |
+          patch_commit=$(git log --format=%H --grep='^refactor(pricing): extract monetary rounding$' -1)
+          test -n "$patch_commit"
+          git checkout "$patch_commit"
       - name: Run benchmark
         env:
           BENCHMARK_REPEATS: ${{ inputs.repeats }}
