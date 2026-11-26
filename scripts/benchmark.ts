@@ -16,7 +16,7 @@ async function run(strategy: RunResult['strategy']): Promise<RunResult> {
   const command = strategy === 'full-suite' ? ['test:ci'] : ['test:affected'];
   const started = performance.now();
   try {
-    await execFileAsync('pnpm', command, {
+    await execFileAsync('npm', ['run', ...command], {
       cwd: root,
       env: process.env,
       maxBuffer: 8 * 1024 * 1024,

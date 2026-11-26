@@ -87,7 +87,7 @@ function classify(
   if (/^src\/.+\.ts$/.test(path)) return 'production';
   if (/^tests\/.+\.test\.ts$/.test(path)) return 'test';
   if (
-    /^(package\.json|pnpm-lock\.yaml|tsconfig[^/]*\.json|vitest\.config\.ts|eslint\.config\.js|\.node-version)$/.test(
+    /^(package\.json|package-lock\.json|tsconfig[^/]*\.json|vitest\.config\.ts|eslint\.config\.js|\.node-version)$/.test(
       path,
     )
   )
@@ -169,15 +169,16 @@ async function main(): Promise<void> {
   let output = '';
   if (fallback) {
     console.log(`[TIA/RTS] fallback: ${reason}`);
-    const result = await run('pnpm', ['test:ci']);
+    const result = await run('npm', ['run', 'test:ci']);
     output = `${result.stdout}\n${result.stderr}`;
     exitCode = result.code;
   } else {
     console.log(
       `[TIA/RTS] related source files: ${productionFiles.join(', ')}`,
     );
-    const result = await run('pnpm', [
+    const result = await run('npm', [
       'exec',
+      '--',
       'vitest',
       'related',
       '--run',
@@ -190,7 +191,7 @@ async function main(): Promise<void> {
       fallback = true;
       reason = 'related selection returned no identifiable tests';
       console.log(`[TIA/RTS] fallback: ${reason}`);
-      const fallbackResult = await run('pnpm', ['test:ci']);
+      const fallbackResult = await run('npm', ['run', 'test:ci']);
       output = `${fallbackResult.stdout}\n${fallbackResult.stderr}`;
       exitCode = fallbackResult.code;
     }
