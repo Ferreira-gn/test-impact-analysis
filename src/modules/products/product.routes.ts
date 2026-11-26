@@ -5,7 +5,10 @@ export async function registerProductRoutes(
   app: FastifyInstance,
   service: ProductService,
 ): Promise<void> {
-  app.get('/products', async () => ({ products: service.list() }));
+  app.get('/products', async () => {
+    const products = service.list();
+    return { products };
+  });
   app.get<{ Params: { id: string } }>(
     '/products/:id',
     {
