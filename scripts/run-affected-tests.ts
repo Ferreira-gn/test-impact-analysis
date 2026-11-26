@@ -5,6 +5,9 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 const root = process.cwd();
 const reportDir = `${root}/reports`;
+const packageManager = process.env.npm_execpath
+  ? { command: process.env.npm_execpath, prefix: [] as string[] }
+  : { command: 'corepack', prefix: ['pnpm'] };
 
 type ChangedFile = { status: string; path: string };
 type SelectionReport = {
@@ -169,14 +172,18 @@ async function main(): Promise<void> {
   let output = '';
   if (fallback) {
     console.log(`[TIA/RTS] fallback: ${reason}`);
-    const result = await run('pnpm', ['test:ci']);
+    const result = await run(packageManager.command, [
+      ...packageManager.prefix,
+      'test:ci',
+    ]);
     output = `${result.stdout}\n${result.stderr}`;
     exitCode = result.code;
   } else {
     console.log(
       `[TIA/RTS] related source files: ${productionFiles.join(', ')}`,
     );
-    const result = await run('pnpm', [
+    const result = await run(packageManager.command, [
+      ...packageManager.prefix,
       'exec',
       'vitest',
       'related',
@@ -190,7 +197,10 @@ async function main(): Promise<void> {
       fallback = true;
       reason = 'related selection returned no identifiable tests';
       console.log(`[TIA/RTS] fallback: ${reason}`);
-      const fallbackResult = await run('pnpm', ['test:ci']);
+      const fallbackResult = await run(packageManager.command, [
+        ...packageManager.prefix,
+        'test:ci',
+      ]);
       output = `${fallbackResult.stdout}\n${fallbackResult.stderr}`;
       exitCode = fallbackResult.code;
     }
