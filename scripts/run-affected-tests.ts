@@ -5,9 +5,7 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 const root = process.cwd();
 const reportDir = `${root}/reports`;
-const packageManager = process.env.npm_execpath
-  ? { command: process.env.npm_execpath, prefix: [] as string[] }
-  : { command: 'corepack', prefix: ['pnpm'] };
+const packageManager = { command: process.env.npm_execpath ?? 'npm', prefix: [] as string[] };
 
 type ChangedFile = { status: string; path: string };
 type SelectionReport = {
@@ -90,7 +88,7 @@ function classify(
   if (/^src\/.+\.ts$/.test(path)) return 'production';
   if (/^tests\/.+\.test\.ts$/.test(path)) return 'test';
   if (
-    /^(package\.json|pnpm-lock\.yaml|tsconfig[^/]*\.json|vitest\.config\.ts|eslint\.config\.js|\.node-version)$/.test(
+    /^(package\.json|package-lock\.json|tsconfig[^/]*\.json|vitest\.config\.ts|eslint\.config\.js|\.node-version)$/.test(
       path,
     )
   )

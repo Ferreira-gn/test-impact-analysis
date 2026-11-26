@@ -19,16 +19,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
-          cache: pnpm
-      - run: corepack enable
-      - run: corepack prepare pnpm@10.17.1 --activate
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm build
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
       - name: Select and run affected tests
         env:
           TIA_BASE: ${{ github.event.before }}
-        run: pnpm test:affected
+        run: npm run test:affected
       - uses: actions/upload-artifact@v4
         with:
           name: tia-rts-report
