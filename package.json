@@ -22,7 +22,7 @@
     "test:integration": "vitest run tests/integration",
     "test:affected": "tsx scripts/run-affected-tests.ts",
     "benchmark": "tsx scripts/benchmark.ts",
-    "validate": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:ci && pnpm build"
+    "validate": "corepack pnpm format:check && corepack pnpm lint && corepack pnpm typecheck && corepack pnpm test:ci && corepack pnpm build"
   },
   "dependencies": {
     "fastify": "^5.6.0"
