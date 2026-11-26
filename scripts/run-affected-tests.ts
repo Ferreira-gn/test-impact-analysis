@@ -58,11 +58,7 @@ async function listTestFiles(directory = `${root}/tests`): Promise<string[]> {
 
 function resolveBase(): string | undefined {
   if (process.env.TIA_BASE) return process.env.TIA_BASE;
-  const result = requireBase('git', [
-    'rev-parse',
-    '--verify',
-    'main',
-  ]);
+  const result = requireBase('git', ['rev-parse', '--verify', 'main']);
   return result;
 }
 
@@ -115,8 +111,7 @@ async function main(): Promise<void> {
 
   if (!base) {
     fallback = true;
-    reason =
-      'base revision could not be resolved; set TIA_BASE or create main';
+    reason = 'base revision could not be resolved; set TIA_BASE or create main';
   } else {
     const diff = await run('git', [
       'diff',
