@@ -1,6 +1,9 @@
 import { AppError } from '../../shared/errors/app-error.js';
 import type { Cart } from '../../shared/types/domain.js';
 import type { ProductService } from '../products/product.service.js';
+import { calculateSubtotal } from '../pricing/calculate-subtotal.js';
+import { CouponService } from '../coupons/coupon.service.js';
+import { CouponRepository } from '../coupons/coupon.repository.js';
 import type { CartRepository } from './cart.repository.js';
 
 const MAX_QUANTITY = 20;
@@ -9,6 +12,7 @@ export class CartService {
   public constructor(
     private readonly repository: CartRepository,
     private readonly products: ProductService,
+    private readonly coupons = new CouponService(new CouponRepository()),
   ) {}
 
   public get(): Cart {
@@ -52,6 +56,17 @@ export class CartService {
     return this.repository.replace(
       current.filter((item) => item.productId !== productId),
     );
+  }
+
+  public applyCoupon(code: string): Cart {
+    const cart = this.repository.get();
+    const subtotalCents = calculateSubtotal(cart.items, this.products.list());
+    const application = this.coupons.calculate(code, subtotalCents);
+    return this.repository.setCoupon(application.code);
+  }
+
+  public clearCoupon(): Cart {
+    return this.repository.clearCoupon();
   }
 
   private validateQuantity(quantity: number): void {

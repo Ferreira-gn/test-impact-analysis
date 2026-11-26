@@ -24,6 +24,7 @@ describe('checkout', () => {
       itemCount: 1,
       subtotalCents: 4990,
       discountCents: 0,
+      couponDiscountCents: 0,
       totalCents: 4990,
     });
     cart.add('coffee', 1);

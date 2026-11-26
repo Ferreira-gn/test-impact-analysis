@@ -15,7 +15,11 @@ npm ci
 npm run dev
 ```
 
-Endpoints: `GET /products`, `GET /products/:id`, `GET /cart`, `POST /cart/items`, `PATCH /cart/items/:productId`, `DELETE /cart/items/:productId` e `POST /checkout`.
+Endpoints públicos: `POST /auth/login`, `GET /products` e `GET /products/:id`.
+
+Após o login, envie `Authorization: Bearer <accessToken>` para acessar `GET /cart`, `POST /cart/items`, `PATCH /cart/items/:productId`, `DELETE /cart/items/:productId`, `POST /cart/coupon`, `DELETE /cart/coupon` e `POST /checkout`. Os usuários, tokens e cupons são mantidos em memória. O usuário de demonstração é `demo@example.com` com senha `password123`.
+
+Cupons disponíveis no ambiente de demonstração: `WELCOME10`, `SAVE500`, `VIP20` e `EXPIRED10` para testar expiração e validações.
 
 ## Validação
 

@@ -18,7 +18,7 @@
     "format:check": "prettier --check .",
     "test": "vitest",
     "test:ci": "vitest run",
-    "test:unit": "vitest run tests/products tests/cart tests/pricing tests/checkout",
+    "test:unit": "vitest run tests/products tests/cart tests/pricing tests/checkout tests/auth tests/coupons",
     "test:integration": "vitest run tests/integration",
     "test:affected": "tsx scripts/run-affected-tests.ts",
     "benchmark": "tsx scripts/benchmark.ts",

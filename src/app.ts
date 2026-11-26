@@ -8,12 +8,21 @@ import { ProductRepository } from './modules/products/product.repository.js';
 import { registerProductRoutes } from './modules/products/product.routes.js';
 import { ProductService } from './modules/products/product.service.js';
 import { AppError } from './shared/errors/app-error.js';
+import { AuthService } from './modules/auth/auth.service.js';
+import { registerAuthRoutes } from './modules/auth/auth.routes.js';
+import { CouponRepository } from './modules/coupons/coupon.repository.js';
+import { CouponService } from './modules/coupons/coupon.service.js';
 
 export function buildApp(): FastifyInstance {
-  const app = Fastify({ logger: false });
+  const app = Fastify({
+    logger: false,
+    ajv: { customOptions: { removeAdditional: false } },
+  });
   const products = new ProductService(new ProductRepository());
-  const cart = new CartService(new CartRepository(), products);
-  const checkout = new CheckoutService(cart, products);
+  const auth = new AuthService();
+  const coupons = new CouponService(new CouponRepository());
+  const cart = new CartService(new CartRepository(), products, coupons);
+  const checkout = new CheckoutService(cart, products, coupons);
 
   app.setErrorHandler((error, request, reply) => {
     request.log.error({ err: error, requestId: request.id }, 'request failed');
@@ -30,8 +39,9 @@ export function buildApp(): FastifyInstance {
     });
   });
 
+  void registerAuthRoutes(app, auth);
   void registerProductRoutes(app, products);
-  void registerCartRoutes(app, cart);
-  void registerCheckoutRoutes(app, checkout);
+  void registerCartRoutes(app, cart, auth);
+  void registerCheckoutRoutes(app, checkout, auth);
   return app;
 }
