@@ -61,7 +61,7 @@ function resolveBase(): string | undefined {
   const result = requireBase('git', [
     'rev-parse',
     '--verify',
-    'baseline/full-suite',
+    'main',
   ]);
   return result;
 }
@@ -116,7 +116,7 @@ async function main(): Promise<void> {
   if (!base) {
     fallback = true;
     reason =
-      'base revision could not be resolved; set TIA_BASE or create baseline/full-suite';
+      'base revision could not be resolved; set TIA_BASE or create main';
   } else {
     const diff = await run('git', [
       'diff',

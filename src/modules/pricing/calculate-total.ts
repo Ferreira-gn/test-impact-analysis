@@ -1,3 +1,5 @@
+import { roundMoney } from './round-money.js';
+
 export function calculateTotal(
   subtotalCents: number,
   discountCents: number,
@@ -9,5 +11,5 @@ export function calculateTotal(
     throw new Error('Money values must be safe integers');
   if (subtotalCents < 0 || discountCents < 0 || discountCents > subtotalCents)
     throw new Error('Invalid monetary values');
-  return subtotalCents - discountCents;
+  return roundMoney(subtotalCents - discountCents);
 }

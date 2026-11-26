@@ -2,7 +2,7 @@
 
 O seletor recebe uma revisão-base (`TIA_BASE`) e compara `TIA_BASE...HEAD` com `git diff --name-status -M`. Os caminhos são normalizados e classificados como produção, testes, configuração, documentação ou não suportados.
 
-Alterações em testes, `package.json`, `package-lock.json`, TypeScript/Vitest, infraestrutura, scripts de seleção, arquivos removidos/renomeados ou caminhos desconhecidos acionam a suíte completa. Essa é uma decisão conservadora: incerteza nunca significa “nenhum teste”.
+Alterações em testes, `package.json`, `package-lock.json`, TypeScript/Vitest, infraestrutura, scripts de seleção, arquivos removidos/renomeados ou caminhos desconhecidos acionam a suíte completa. Essa é uma decisão conservadora: incerteza nunca significa “nenhum teste”. A branch experimental compara as alterações com `main`.
 
 Para alterações somente em produção, `scripts/run-affected-tests.ts` chama `npm exec -- vitest related --run <arquivos>`. O Vitest usa relações de imports estáticos, incluindo relações transitivas que consegue analisar. Imports dinâmicos e relações obtidas apenas em runtime são limitações conhecidas.
 
