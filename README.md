@@ -10,7 +10,7 @@ API didática de carrinho e checkout simulado para comparar execução completa 
 
 Node.js `24.18.0` e npm `11.6.0`.
 
-```fish
+```bash
 npm ci
 npm run dev
 ```
@@ -19,7 +19,7 @@ Endpoints: `GET /products`, `GET /products/:id`, `GET /cart`, `POST /cart/items`
 
 ## Validação
 
-```fish
+```bash
 npm run typecheck
 npm run build
 npm run test:ci
@@ -30,8 +30,8 @@ npm run validate
 
 ## TIA/RTS
 
-```fish
-env TIA_BASE=main npm run test:affected
+```bash
+TIA_BASE=main npm run test:affected
 ```
 
 O seletor usa `git diff --name-status -M` e `vitest related --run`. Configuração, testes, manifests, infraestrutura compartilhada, alterações incertas, renomeações, exclusões e seleção vazia acionam fallback para `npm run test:ci`. Veja [`docs/tia-rts-algorithm.md`](docs/tia-rts-algorithm.md).
@@ -45,8 +45,8 @@ As branches compartilham a aplicação, testes, dependências e patch experiment
 
 ## Benchmark
 
-```fish
-env TIA_BASE=HEAD^ BENCHMARK_REPEATS=5 npm run benchmark
+```bash
+TIA_BASE=HEAD^ BENCHMARK_REPEATS=5 npm run benchmark
 ```
 
 Esse comando deve ser executado no commit do patch experimental (`refactor(pricing): extract monetary rounding`), com `TIA_BASE` apontando para seu pai; se executado em um HEAD que também alterou configuração ou scripts, o seletor fará fallback por segurança. O workflow manual já localiza esse commit automaticamente. O script alterna a ordem das estratégias, mede somente o comando de testes, calcula medianas e grava `reports/benchmark.json` e `reports/benchmark.md`. Não há sleeps nem resultados inventados. Uma suíte pequena pode não produzir ganho estatisticamente relevante.
