@@ -17,17 +17,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
-          cache: pnpm
-      - run: corepack enable
-      - run: corepack prepare pnpm@10.17.1 --activate
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm build
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
       - name: Run full test suite
         run: |
           mkdir -p reports
           start=$(date +%s%3N)
-          pnpm test:ci
+          npm run test:ci
           end=$(date +%s%3N)
           printf '{"strategy":"full-suite","testDurationMs":%s}\n' "$((end-start))" > reports/full-suite.json
       - uses: actions/upload-artifact@v4

@@ -10,18 +10,17 @@ O projeto não utiliza banco de dados externo. Produtos e carrinho ficam em repo
 
 ```fish
 git switch baseline/full-suite
-corepack prepare pnpm@10.17.1 --activate
-corepack pnpm install
+npm ci
 ```
 
-Se o ambiente possuir o shim do Corepack habilitado, os mesmos comandos podem ser escritos como `pnpm install`, `pnpm test:ci` e assim por diante. Neste guia, `corepack pnpm` funciona mesmo quando o comando `pnpm` não está diretamente no `PATH`.
+Os comandos usam o npm do Node.js definido em `.node-version` e o lockfile versionado.
 
 ### 2. Levantar a API
 
 Em um terminal separado, execute:
 
 ```fish
-env PORT=3000 corepack pnpm dev
+env PORT=3000 npm run dev
 ```
 
 A API ficará disponível em `http://localhost:3000`. Para verificar se ela está respondendo, consulte o catálogo:
@@ -79,15 +78,15 @@ curl --include http://localhost:3000/products/does-not-exist
 Na raiz do projeto, execute a validação completa:
 
 ```fish
-corepack pnpm typecheck
-corepack pnpm build
-corepack pnpm test:unit
-corepack pnpm test:integration
-corepack pnpm test:ci
-corepack pnpm validate
+npm run typecheck
+npm run build
+npm run test:unit
+npm run test:integration
+npm run test:ci
+npm run validate
 ```
 
-O comando principal da branch baseline é `corepack pnpm test:ci`. Ele executa todos os arquivos de teste e representa o cenário tradicional de CI.
+O comando principal da branch baseline é `npm run test:ci`. Ele executa todos os arquivos de teste e representa o cenário tradicional de CI.
 
 ### 6. Rodar o benchmark a partir do patch experimental
 
@@ -101,7 +100,7 @@ git switch --detach "$PATCH_COMMIT"
 Agora execute o benchmark com o pai do patch como base:
 
 ```fish
-env TIA_BASE=HEAD^ BENCHMARK_REPEATS=5 corepack pnpm benchmark
+env TIA_BASE=HEAD^ BENCHMARK_REPEATS=5 npm run benchmark
 ```
 
 Os arquivos `reports/benchmark.json` e `reports/benchmark.md` conterão os tempos brutos, medianas e percentuais. O benchmark mede somente os comandos de teste; instalação, build e typecheck ficam fora da métrica.
@@ -118,8 +117,7 @@ git switch baseline/full-suite
 
 ```fish
 git switch experiment/tia-rts
-corepack prepare pnpm@10.17.1 --activate
-corepack pnpm install
+npm ci
 ```
 
 A aplicação, os testes e as dependências são os mesmos da baseline. A diferença está no workflow e na estratégia de execução dos testes.
@@ -129,7 +127,7 @@ A aplicação, os testes e as dependências são os mesmos da baseline. A difere
 Em um terminal separado:
 
 ```fish
-env PORT=3000 corepack pnpm dev
+env PORT=3000 npm run dev
 ```
 
 Em outro terminal, use as mesmas requisições da Parte 01 para consultar produtos e adicionar itens:
@@ -151,7 +149,7 @@ Esse fluxo demonstra que a aplicação é a mesma nas duas branches; somente o m
 Para executar o seletor usando a branch baseline como referência:
 
 ```fish
-env TIA_BASE=baseline/full-suite corepack pnpm test:affected
+env TIA_BASE=baseline/full-suite npm run test:affected
 ```
 
 O script consulta as alterações com `git diff --name-status -M`, classifica os caminhos e, quando a alteração é suportada, chama o Vitest com `related`. O relatório é escrito em `reports/selection-report.json` e `reports/selection-report.md`.
@@ -163,7 +161,7 @@ Para demonstrar diretamente a seleção do patch de pricing pelo grafo de import
 ```fish
 set PATCH_COMMIT (git log --format=%H --grep='^refactor(pricing): extract monetary rounding$' -1)
 git switch --detach "$PATCH_COMMIT"
-corepack pnpm exec vitest related --run \
+npm exec -- vitest related --run \
   src/modules/pricing/calculate-total.ts \
   src/modules/pricing/round-money.ts
 ```
@@ -179,17 +177,17 @@ git switch experiment/tia-rts
 Execute as validações comuns:
 
 ```fish
-corepack pnpm typecheck
-corepack pnpm build
-corepack pnpm test:unit
-corepack pnpm test:integration
-corepack pnpm validate
+npm run typecheck
+npm run build
+npm run test:unit
+npm run test:integration
+npm run validate
 ```
 
 O comando característico da branch é:
 
 ```fish
-env TIA_BASE=baseline/full-suite corepack pnpm test:affected
+env TIA_BASE=baseline/full-suite npm run test:affected
 ```
 
 A branch não executa a suíte completa depois de uma seleção bem-sucedida. A suíte completa só é executada quando a política conservadora de fallback é acionada.
@@ -201,7 +199,7 @@ Para uma comparação local correta, o benchmark deve ser executado no commit do
 ```fish
 set PATCH_COMMIT (git log --format=%H --grep='^refactor(pricing): extract monetary rounding$' -1)
 git switch --detach "$PATCH_COMMIT"
-env TIA_BASE=HEAD^ BENCHMARK_REPEATS=5 corepack pnpm benchmark
+env TIA_BASE=HEAD^ BENCHMARK_REPEATS=5 npm run benchmark
 git switch experiment/tia-rts
 ```
 

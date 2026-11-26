@@ -1,5 +1,5 @@
 .agents/
-pnpm-lock.yaml
+package-lock.json
 dist/
 node_modules/
 reports/
