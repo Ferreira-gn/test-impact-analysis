@@ -1,0 +1,36 @@
+name: Full suite
+
+on:
+  push:
+    branches: [baseline/full-suite]
+  pull_request:
+    branches: [baseline/full-suite]
+
+permissions:
+  contents: read
+
+jobs:
+  full-suite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: corepack enable
+      - run: corepack prepare pnpm@10.17.1 --activate
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm build
+      - name: Run full test suite
+        run: |
+          mkdir -p reports
+          start=$(date +%s%3N)
+          pnpm test:ci
+          end=$(date +%s%3N)
+          printf '{"strategy":"full-suite","testDurationMs":%s}\n' "$((end-start))" > reports/full-suite.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: full-suite-report
+          path: reports/
