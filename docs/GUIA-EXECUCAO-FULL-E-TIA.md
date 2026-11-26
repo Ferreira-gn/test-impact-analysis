@@ -8,7 +8,7 @@ O projeto não utiliza banco de dados externo. Produtos e carrinho ficam em repo
 
 ### 1. Selecionar a branch e preparar o ambiente
 
-```bash
+```fish
 git switch baseline/full-suite
 corepack prepare pnpm@10.17.1 --activate
 corepack pnpm install
@@ -20,13 +20,13 @@ Se o ambiente possuir o shim do Corepack habilitado, os mesmos comandos podem se
 
 Em um terminal separado, execute:
 
-```bash
-PORT=3000 corepack pnpm dev
+```fish
+env PORT=3000 corepack pnpm dev
 ```
 
 A API ficará disponível em `http://localhost:3000`. Para verificar se ela está respondendo, consulte o catálogo:
 
-```bash
+```fish
 curl --fail http://localhost:3000/products
 ```
 
@@ -34,7 +34,7 @@ curl --fail http://localhost:3000/products
 
 Adicione dois cafés e uma caneca ao carrinho. Esses comandos simulam a população dos dados usados no checkout:
 
-```bash
+```fish
 curl --fail --request POST http://localhost:3000/cart/items \
   --header 'content-type: application/json' \
   --data '{"productId":"coffee","quantity":2}'
@@ -52,7 +52,7 @@ Para “limpar o banco”, interrompa a API com `Ctrl+C` e inicie-a novamente. C
 
 Consulte um produto específico, atualize a quantidade e execute o checkout:
 
-```bash
+```fish
 curl --fail http://localhost:3000/products/coffee
 
 curl --fail --request PATCH http://localhost:3000/cart/items/coffee \
@@ -66,7 +66,7 @@ curl --fail --request POST http://localhost:3000/checkout
 
 Para demonstrar validação, tente uma quantidade inválida ou um produto inexistente:
 
-```bash
+```fish
 curl --include --request POST http://localhost:3000/cart/items \
   --header 'content-type: application/json' \
   --data '{"productId":"coffee","quantity":0}'
@@ -78,7 +78,7 @@ curl --include http://localhost:3000/products/does-not-exist
 
 Na raiz do projeto, execute a validação completa:
 
-```bash
+```fish
 corepack pnpm typecheck
 corepack pnpm build
 corepack pnpm test:unit
@@ -93,22 +93,22 @@ O comando principal da branch baseline é `corepack pnpm test:ci`. Ele executa t
 
 O benchmark precisa comparar o commit experimental isolado. Primeiro, localize o commit da alteração de pricing e entre temporariamente nele:
 
-```bash
-PATCH_COMMIT=$(git log --format=%H --grep='^refactor(pricing): extract monetary rounding$' -1)
+```fish
+set PATCH_COMMIT (git log --format=%H --grep='^refactor(pricing): extract monetary rounding$' -1)
 git switch --detach "$PATCH_COMMIT"
 ```
 
 Agora execute o benchmark com o pai do patch como base:
 
-```bash
-TIA_BASE=HEAD^ BENCHMARK_REPEATS=5 corepack pnpm benchmark
+```fish
+env TIA_BASE=HEAD^ BENCHMARK_REPEATS=5 corepack pnpm benchmark
 ```
 
 Os arquivos `reports/benchmark.json` e `reports/benchmark.md` conterão os tempos brutos, medianas e percentuais. O benchmark mede somente os comandos de teste; instalação, build e typecheck ficam fora da métrica.
 
 Ao terminar, retorne à branch baseline:
 
-```bash
+```fish
 git switch baseline/full-suite
 ```
 
@@ -116,7 +116,7 @@ git switch baseline/full-suite
 
 ### 1. Selecionar a branch e preparar o ambiente
 
-```bash
+```fish
 git switch experiment/tia-rts
 corepack prepare pnpm@10.17.1 --activate
 corepack pnpm install
@@ -128,13 +128,13 @@ A aplicação, os testes e as dependências são os mesmos da baseline. A difere
 
 Em um terminal separado:
 
-```bash
-PORT=3000 corepack pnpm dev
+```fish
+env PORT=3000 corepack pnpm dev
 ```
 
 Em outro terminal, use as mesmas requisições da Parte 01 para consultar produtos e adicionar itens:
 
-```bash
+```fish
 curl --fail http://localhost:3000/products
 
 curl --fail --request POST http://localhost:3000/cart/items \
@@ -150,8 +150,8 @@ Esse fluxo demonstra que a aplicação é a mesma nas duas branches; somente o m
 
 Para executar o seletor usando a branch baseline como referência:
 
-```bash
-TIA_BASE=baseline/full-suite corepack pnpm test:affected
+```fish
+env TIA_BASE=baseline/full-suite corepack pnpm test:affected
 ```
 
 O script consulta as alterações com `git diff --name-status -M`, classifica os caminhos e, quando a alteração é suportada, chama o Vitest com `related`. O relatório é escrito em `reports/selection-report.json` e `reports/selection-report.md`.
@@ -160,8 +160,8 @@ Se o HEAD contiver alterações de configuração, testes ou scripts além do c�
 
 Para demonstrar diretamente a seleção do patch de pricing pelo grafo de imports:
 
-```bash
-PATCH_COMMIT=$(git log --format=%H --grep='^refactor(pricing): extract monetary rounding$' -1)
+```fish
+set PATCH_COMMIT (git log --format=%H --grep='^refactor(pricing): extract monetary rounding$' -1)
 git switch --detach "$PATCH_COMMIT"
 corepack pnpm exec vitest related --run \
   src/modules/pricing/calculate-total.ts \
@@ -170,7 +170,7 @@ corepack pnpm exec vitest related --run \
 
 Depois da demonstração, retorne à branch experimental:
 
-```bash
+```fish
 git switch experiment/tia-rts
 ```
 
@@ -178,7 +178,7 @@ git switch experiment/tia-rts
 
 Execute as validações comuns:
 
-```bash
+```fish
 corepack pnpm typecheck
 corepack pnpm build
 corepack pnpm test:unit
@@ -188,8 +188,8 @@ corepack pnpm validate
 
 O comando característico da branch é:
 
-```bash
-TIA_BASE=baseline/full-suite corepack pnpm test:affected
+```fish
+env TIA_BASE=baseline/full-suite corepack pnpm test:affected
 ```
 
 A branch não executa a suíte completa depois de uma seleção bem-sucedida. A suíte completa só é executada quando a política conservadora de fallback é acionada.
@@ -198,10 +198,10 @@ A branch não executa a suíte completa depois de uma seleção bem-sucedida. A 
 
 Para uma comparação local correta, o benchmark deve ser executado no commit do patch experimental, com o pai como base:
 
-```bash
-PATCH_COMMIT=$(git log --format=%H --grep='^refactor(pricing): extract monetary rounding$' -1)
+```fish
+set PATCH_COMMIT (git log --format=%H --grep='^refactor(pricing): extract monetary rounding$' -1)
 git switch --detach "$PATCH_COMMIT"
-TIA_BASE=HEAD^ BENCHMARK_REPEATS=5 corepack pnpm benchmark
+env TIA_BASE=HEAD^ BENCHMARK_REPEATS=5 corepack pnpm benchmark
 git switch experiment/tia-rts
 ```
 

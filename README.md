@@ -10,30 +10,29 @@ API didática de carrinho e checkout simulado para comparar execução completa 
 
 Node.js `24.18.0` e pnpm `10.17.1`.
 
-```bash
-corepack enable
+```fish
 corepack prepare pnpm@10.17.1 --activate
-pnpm install
-pnpm dev
+corepack pnpm install
+corepack pnpm dev
 ```
 
 Endpoints: `GET /products`, `GET /products/:id`, `GET /cart`, `POST /cart/items`, `PATCH /cart/items/:productId`, `DELETE /cart/items/:productId` e `POST /checkout`.
 
 ## Validação
 
-```bash
-pnpm typecheck
-pnpm build
-pnpm test:ci
-pnpm test:unit
-pnpm test:integration
-pnpm validate
+```fish
+corepack pnpm typecheck
+corepack pnpm build
+corepack pnpm test:ci
+corepack pnpm test:unit
+corepack pnpm test:integration
+corepack pnpm validate
 ```
 
 ## TIA/RTS
 
-```bash
-TIA_BASE=baseline/full-suite pnpm test:affected
+```fish
+env TIA_BASE=baseline/full-suite corepack pnpm test:affected
 ```
 
 O seletor usa `git diff --name-status -M` e `vitest related --run`. Configuração, testes, manifests, infraestrutura compartilhada, alterações incertas, renomeações, exclusões e seleção vazia acionam fallback para `pnpm test:ci`. Veja [`docs/tia-rts-algorithm.md`](docs/tia-rts-algorithm.md).
@@ -47,8 +46,8 @@ As branches compartilham a aplicação, testes, dependências e patch experiment
 
 ## Benchmark
 
-```bash
-TIA_BASE=HEAD^ BENCHMARK_REPEATS=5 pnpm benchmark
+```fish
+env TIA_BASE=HEAD^ BENCHMARK_REPEATS=5 corepack pnpm benchmark
 ```
 
 Esse comando deve ser executado no commit do patch experimental (`refactor(pricing): extract monetary rounding`), com `TIA_BASE` apontando para seu pai; se executado em um HEAD que também alterou configuração ou scripts, o seletor fará fallback por segurança. O workflow manual já localiza esse commit automaticamente. O script alterna a ordem das estratégias, mede somente o comando de testes, calcula medianas e grava `reports/benchmark.json` e `reports/benchmark.md`. Não há sleeps nem resultados inventados. Uma suíte pequena pode não produzir ganho estatisticamente relevante.
