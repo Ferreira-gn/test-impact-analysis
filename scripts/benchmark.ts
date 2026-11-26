@@ -5,6 +5,9 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 const repeats = Number(process.env.BENCHMARK_REPEATS ?? 5);
 const root = process.cwd();
+const packageManager = process.env.npm_execpath
+  ? { command: process.env.npm_execpath, prefix: [] as string[] }
+  : { command: 'corepack', prefix: ['pnpm'] };
 
 type RunResult = {
   strategy: 'full-suite' | 'tia-rts';
@@ -16,11 +19,15 @@ async function run(strategy: RunResult['strategy']): Promise<RunResult> {
   const command = strategy === 'full-suite' ? ['test:ci'] : ['test:affected'];
   const started = performance.now();
   try {
-    await execFileAsync('pnpm', command, {
-      cwd: root,
-      env: process.env,
-      maxBuffer: 8 * 1024 * 1024,
-    });
+    await execFileAsync(
+      packageManager.command,
+      [...packageManager.prefix, ...command],
+      {
+        cwd: root,
+        env: process.env,
+        maxBuffer: 8 * 1024 * 1024,
+      },
+    );
     return {
       strategy,
       durationMs: Number((performance.now() - started).toFixed(2)),
