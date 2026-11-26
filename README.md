@@ -34,7 +34,7 @@ npm run validate
 TIA_BASE=main npm run test:affected
 ```
 
-O seletor usa `git diff --name-status -M` e `vitest related --run`. Configuração, testes, manifests, infraestrutura compartilhada, alterações incertas, renomeações, exclusões e seleção vazia acionam fallback para `npm run test:ci`. Veja [`docs/tia-rts-algorithm.md`](docs/tia-rts-algorithm.md).
+O seletor usa `git diff --name-status -M` e `vitest related --run`. Configuração, testes, manifests, infraestrutura compartilhada, alterações incertas, renomeações, exclusões e seleção vazia acionam fallback para `npm run test:ci`. O relatório mostra quantos arquivos de teste foram executados e quantos foram evitados. Veja [`docs/tia-rts-algorithm.md`](docs/tia-rts-algorithm.md).
 
 ## Branches do experimento
 
@@ -49,7 +49,9 @@ As branches compartilham a aplicação, testes, dependências e patch experiment
 TIA_BASE=HEAD^ BENCHMARK_REPEATS=5 npm run benchmark
 ```
 
-Esse comando deve ser executado no commit do patch experimental (`refactor(pricing): extract monetary rounding`), com `TIA_BASE` apontando para seu pai; se executado em um HEAD que também alterou configuração ou scripts, o seletor fará fallback por segurança. O workflow manual já localiza esse commit automaticamente. O script alterna a ordem das estratégias, mede somente o comando de testes, calcula medianas e grava `reports/benchmark.json` e `reports/benchmark.md`. Não há sleeps nem resultados inventados. Uma suíte pequena pode não produzir ganho estatisticamente relevante.
+Esse comando deve ser executado no commit do patch experimental (`refactor(pricing): extract monetary rounding`), com `TIA_BASE` apontando para seu pai; se executado em um HEAD que também alterou configuração ou scripts, o seletor fará fallback por segurança. O workflow manual já localiza esse commit automaticamente. O script alterna a ordem das estratégias, mede somente o comando de testes, calcula medianas e grava `reports/benchmark.json` e `reports/benchmark.md`, incluindo a comparação de testes executados e evitados. Não há sleeps nem resultados inventados. Uma suíte pequena pode não produzir ganho estatisticamente relevante.
+
+O CI da branch `experiment/tia-rts` também executa esse benchmark e publica os relatórios como artifact, comparando explicitamente full-suite e TIA/RTS.
 
 ## Skill local
 

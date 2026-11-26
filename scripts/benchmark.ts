@@ -10,11 +10,52 @@ type RunResult = {
   strategy: 'full-suite' | 'tia-rts';
   durationMs: number;
   exitCode: number;
+  testsExecuted: number | null;
+  testsAvoided: number | null;
 };
+
+async function listTestFiles(directory = `${root}/tests`): Promise<string[]> {
+  const entries = await fs.readdir(directory, { withFileTypes: true });
+  const files: string[] = [];
+  for (const entry of entries) {
+    const fullPath = `${directory}/${entry.name}`;
+    if (entry.isDirectory()) files.push(...(await listTestFiles(fullPath)));
+    else if (/\.test\.ts$/.test(entry.name)) files.push(fullPath);
+  }
+  return files;
+}
+
+function isSelectionReport(value: unknown): value is {
+  testsExecuted: number;
+  testsAvoided: number;
+} {
+  if (typeof value !== 'object' || value === null) return false;
+  const testsExecuted = Reflect.get(value, 'testsExecuted');
+  const testsAvoided = Reflect.get(value, 'testsAvoided');
+  return typeof testsExecuted === 'number' && typeof testsAvoided === 'number';
+}
+
+async function readSelectionCounts(): Promise<{
+  testsExecuted: number | null;
+  testsAvoided: number | null;
+}> {
+  try {
+    const content = await fs.readFile(
+      `${root}/reports/selection-report.json`,
+      'utf8',
+    );
+    const report: unknown = JSON.parse(content);
+    if (isSelectionReport(report)) return report;
+  } catch {
+    // A failed selector must remain visible as a failed benchmark run.
+  }
+  return { testsExecuted: null, testsAvoided: null };
+}
 
 async function run(strategy: RunResult['strategy']): Promise<RunResult> {
   const command = strategy === 'full-suite' ? ['test:ci'] : ['test:affected'];
   const started = performance.now();
+  const totalTestFiles = (await listTestFiles()).length;
   try {
     await execFileAsync('npm', ['run', ...command], {
       cwd: root,
@@ -25,6 +66,9 @@ async function run(strategy: RunResult['strategy']): Promise<RunResult> {
       strategy,
       durationMs: Number((performance.now() - started).toFixed(2)),
       exitCode: 0,
+      ...(strategy === 'full-suite'
+        ? { testsExecuted: totalTestFiles, testsAvoided: 0 }
+        : await readSelectionCounts()),
     };
   } catch (error) {
     const failure = error as { code?: number };
@@ -32,6 +76,9 @@ async function run(strategy: RunResult['strategy']): Promise<RunResult> {
       strategy,
       durationMs: Number((performance.now() - started).toFixed(2)),
       exitCode: failure.code ?? 1,
+      ...(strategy === 'full-suite'
+        ? { testsExecuted: totalTestFiles, testsAvoided: 0 }
+        : await readSelectionCounts()),
     };
   }
 }
@@ -56,11 +103,42 @@ const selectedTimes = runs
   .map((run) => run.durationMs);
 const fullMedianMs = median(fullTimes);
 const selectedMedianMs = median(selectedTimes);
+const successfulTiaRuns = runs.filter(
+  (run) => run.strategy === 'tia-rts' && run.exitCode === 0,
+);
+const tiaExecutedCounts = successfulTiaRuns
+  .map((run) => run.testsExecuted)
+  .filter((count): count is number => count !== null);
+const tiaAvoidedCounts = successfulTiaRuns
+  .map((run) => run.testsAvoided)
+  .filter((count): count is number => count !== null);
+const tiaExecutedMedian =
+  tiaExecutedCounts.length > 0 ? median(tiaExecutedCounts) : null;
+const tiaAvoidedMedian =
+  tiaAvoidedCounts.length > 0 ? median(tiaAvoidedCounts) : null;
+const totalTestFiles = (await listTestFiles()).length;
 const report = {
   repeats,
   runs,
   fullMedianMs,
   selectedMedianMs,
+  comparison: {
+    totalTestFiles,
+    fullSuite: {
+      testsExecuted: totalTestFiles,
+      testsAvoided: 0,
+      medianDurationMs: fullMedianMs,
+    },
+    tiaRts: {
+      testsExecuted: tiaExecutedMedian,
+      testsAvoided: tiaAvoidedMedian,
+      medianDurationMs: selectedMedianMs,
+    },
+  },
+  testsAvoidedPercent:
+    tiaAvoidedMedian !== null && totalTestFiles > 0
+      ? Number(((tiaAvoidedMedian / totalTestFiles) * 100).toFixed(2))
+      : null,
   timeReductionPercent:
     fullMedianMs > 0
       ? Number(
@@ -76,7 +154,7 @@ await fs.writeFile(
 );
 await fs.writeFile(
   `${root}/reports/benchmark.md`,
-  `# Benchmark\n\n| Metric | Full suite | TIA/RTS |\n|---|---:|---:|\n| Median test duration (ms) | ${fullMedianMs} | ${selectedMedianMs} |\n| Time reduction | reference | ${report.timeReductionPercent ?? 'N/A'}% |\n\nRepetitions: ${repeats}. Raw runs are available in benchmark.json.\n`,
+  `# Benchmark\n\n| Metric | Full suite | TIA/RTS |\n|---|---:|---:|\n| Median test duration (ms) | ${fullMedianMs} | ${selectedMedianMs} |\n| Tests executed (median) | ${totalTestFiles} | ${tiaExecutedMedian ?? 'N/A'} |\n| Tests avoided (median) | 0 | ${tiaAvoidedMedian ?? 'N/A'} |\n| Time reduction | reference | ${report.timeReductionPercent ?? 'N/A'}% |\n| Tests avoided | reference | ${report.testsAvoidedPercent ?? 'N/A'}% |\n\nRepetitions: ${repeats}. Raw runs and selection counts are available in benchmark.json.\n`,
 );
 console.log(JSON.stringify(report, null, 2));
 if (runs.some((run) => run.exitCode !== 0)) process.exitCode = 1;

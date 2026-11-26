@@ -1,17 +1,21 @@
 import { execFile, execFileSync } from 'node:child_process';
 import { promises as fs } from 'node:fs';
 import { promisify } from 'node:util';
+import { calculateTestSelectionCounts } from './tia-rts-report.js';
 
 const execFileAsync = promisify(execFile);
 const root = process.cwd();
 const reportDir = `${root}/reports`;
 
 type ChangedFile = { status: string; path: string };
-type SelectionReport = {
+export type SelectionReport = {
   changedFiles: ChangedFile[];
   productionFiles: string[];
   selectedTestFiles: string[];
   totalTestFiles: number;
+  testsExecuted: number;
+  testsAvoided: number;
+  selectionMode: 'fallback-full-suite' | 'vitest-related';
   fallback: boolean;
   reason: string;
   analysisDurationMs: number;
@@ -198,6 +202,12 @@ async function main(): Promise<void> {
     productionFiles,
     selectedTestFiles: fallback ? testFiles : selectedTestFiles,
     totalTestFiles: testFiles.length,
+    ...calculateTestSelectionCounts(
+      testFiles.length,
+      fallback ? testFiles : selectedTestFiles,
+      fallback,
+    ),
+    selectionMode: fallback ? 'fallback-full-suite' : 'vitest-related',
     fallback,
     reason: fallback ? reason : 'static import graph via Vitest related',
     analysisDurationMs: Number(analysisDurationMs.toFixed(2)),
@@ -211,7 +221,10 @@ async function main(): Promise<void> {
   );
   await fs.writeFile(
     `${reportDir}/selection-report.md`,
-    `# TIA/RTS selection report\n\n- Fallback: **${report.fallback}**\n- Reason: ${report.reason}\n- Changed files: ${report.changedFiles.map((file) => file.path).join(', ') || 'none'}\n- Production files: ${report.productionFiles.join(', ') || 'none'}\n- Tests executed: ${report.selectedTestFiles.length}/${report.totalTestFiles} test files\n- Analysis: ${report.analysisDurationMs} ms\n- Tests: ${report.testDurationMs} ms\n- Exit code: ${report.exitCode}\n`,
+    `# TIA/RTS selection report\n\n- Mode: **${report.selectionMode}**\n- Fallback: **${report.fallback}**\n- Reason: ${report.reason}\n- Changed files: ${report.changedFiles.map((file) => file.path).join(', ') || 'none'}\n- Production files: ${report.productionFiles.join(', ') || 'none'}\n- Tests executed: ${report.testsExecuted}/${report.totalTestFiles} test files\n- Tests avoided: ${report.testsAvoided}\n- Analysis: ${report.analysisDurationMs} ms\n- Tests: ${report.testDurationMs} ms\n- Exit code: ${report.exitCode}\n`,
+  );
+  console.log(
+    `[TIA/RTS] tests executed: ${report.testsExecuted}; tests avoided: ${report.testsAvoided}`,
   );
   process.exitCode = exitCode;
 }
