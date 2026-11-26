@@ -1,0 +1,5 @@
+.agents/
+pnpm-lock.yaml
+dist/
+node_modules/
+reports/

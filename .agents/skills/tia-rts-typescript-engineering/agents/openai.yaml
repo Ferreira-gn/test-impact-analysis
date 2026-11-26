@@ -1,0 +1,4 @@
+interface:
+  display_name: "TIA/RTS TypeScript Engineering"
+  short_description: "Constrói e mantém a API TypeScript com qualidade, segurança e CI seletivo"
+  default_prompt: "Use $tia-rts-typescript-engineering para implementar esta tarefa seguindo os padrões do projeto, preservando a validade do experimento TIA/RTS."
