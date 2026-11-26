@@ -33,7 +33,9 @@ const defaultUsers: UserRecord[] = [
 ];
 
 function encode(value: string): string {
-  return Buffer.from(value, 'utf8').toString('base64url');
+  return Buffer
+    .from(value, 'utf8')
+    .toString('base64url');
 }
 
 function decode(value: string): string {
