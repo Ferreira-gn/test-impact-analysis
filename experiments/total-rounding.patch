@@ -1,0 +1,26 @@
+diff --git a/src/modules/pricing/calculate-total.ts b/src/modules/pricing/calculate-total.ts
+index 26db67e..17de588 100644
+--- a/src/modules/pricing/calculate-total.ts
++++ b/src/modules/pricing/calculate-total.ts
+@@ -1,3 +1,5 @@
++import { roundMoney } from './round-money.js';
++
+ export function calculateTotal(
+   subtotalCents: number,
+   discountCents: number,
+@@ -9,5 +11,5 @@ export function calculateTotal(
+     throw new Error('Money values must be safe integers');
+   if (subtotalCents < 0 || discountCents < 0 || discountCents > subtotalCents)
+     throw new Error('Invalid monetary values');
+-  return subtotalCents - discountCents;
++  return roundMoney(subtotalCents - discountCents);
+ }
+diff --git a/src/modules/pricing/round-money.ts b/src/modules/pricing/round-money.ts
+new file mode 100644
+index 0000000..700ae29
+--- /dev/null
++++ b/src/modules/pricing/round-money.ts
+@@ -0,0 +1,3 @@
++export function roundMoney(cents: number): number {
++  return Math.round(cents);
++}
