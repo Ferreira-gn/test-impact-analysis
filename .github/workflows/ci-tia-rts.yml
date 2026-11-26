@@ -1,0 +1,35 @@
+name: TIA RTS
+
+on:
+  push:
+    branches: [experiment/tia-rts]
+  pull_request:
+    branches: [experiment/tia-rts]
+
+permissions:
+  contents: read
+
+jobs:
+  affected-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: corepack enable
+      - run: corepack prepare pnpm@10.17.1 --activate
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm build
+      - name: Select and run affected tests
+        env:
+          TIA_BASE: ${{ github.event.before }}
+        run: pnpm test:affected
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tia-rts-report
+          path: reports/
