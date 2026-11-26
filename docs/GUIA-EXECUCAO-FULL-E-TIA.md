@@ -4,12 +4,12 @@ Este guia contém o passo a passo para demonstrar o projeto em duas partes. Os c
 
 O projeto não utiliza banco de dados externo. Produtos e carrinho ficam em repositórios em memória. Portanto, “popular o banco” significa adicionar itens pela API; os dados são apagados quando o processo da API é reiniciado.
 
-## Parte 01 — `baseline/full-suite`
+## Parte 01 — `main`
 
 ### 1. Selecionar a branch e preparar o ambiente
 
 ```fish
-git switch baseline/full-suite
+git switch main
 npm ci
 ```
 
@@ -108,7 +108,7 @@ Os arquivos `reports/benchmark.json` e `reports/benchmark.md` conterão os tempo
 Ao terminar, retorne à branch baseline:
 
 ```fish
-git switch baseline/full-suite
+git switch main
 ```
 
 ## Parte 02 — `experiment/tia-rts`
@@ -149,7 +149,7 @@ Esse fluxo demonstra que a aplicação é a mesma nas duas branches; somente o m
 Para executar o seletor usando a branch baseline como referência:
 
 ```fish
-env TIA_BASE=baseline/full-suite npm run test:affected
+env TIA_BASE=main npm run test:affected
 ```
 
 O script consulta as alterações com `git diff --name-status -M`, classifica os caminhos e, quando a alteração é suportada, chama o Vitest com `related`. O relatório é escrito em `reports/selection-report.json` e `reports/selection-report.md`.
@@ -187,7 +187,7 @@ npm run validate
 O comando característico da branch é:
 
 ```fish
-env TIA_BASE=baseline/full-suite npm run test:affected
+env TIA_BASE=main npm run test:affected
 ```
 
 A branch não executa a suíte completa depois de uma seleção bem-sucedida. A suíte completa só é executada quando a política conservadora de fallback é acionada.
@@ -209,7 +209,7 @@ O script alterna a ordem entre `full-suite` e `tia-rts`, repete a medição, cal
 
 Na branch `experiment/tia-rts`, publique a branch somente quando desejar executar o CI remoto. O workflow `.github/workflows/benchmark.yml` pode ser disparado manualmente pela opção **Run workflow** do GitHub Actions. Ele localiza o commit `refactor(pricing): extract monetary rounding`, faz checkout desse commit, executa o benchmark e publica `reports/` como artifact.
 
-O workflow normal `ci-tia-rts.yml` faz checkout com histórico completo, instala as dependências, executa typecheck e build, roda `test:affected` e publica o relatório de seleção. O workflow da baseline, `ci-full-suite.yml`, executa `test:ci` e publica o relatório da suíte completa.
+O workflow normal `ci-tia-rts.yml` faz checkout com histórico completo, instala as dependências, executa typecheck e build, roda `test:affected` e publica o relatório de seleção. O workflow da `main`, `ci-full-suite.yml`, executa `test:ci` e publica o relatório da suíte completa.
 
 ## Sequência recomendada para a apresentação
 

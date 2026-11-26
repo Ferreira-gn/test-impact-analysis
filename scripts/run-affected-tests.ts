@@ -5,7 +5,6 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 const root = process.cwd();
 const reportDir = `${root}/reports`;
-const packageManager = { command: process.env.npm_execpath ?? 'npm', prefix: [] as string[] };
 
 type ChangedFile = { status: string; path: string };
 type SelectionReport = {
@@ -59,11 +58,7 @@ async function listTestFiles(directory = `${root}/tests`): Promise<string[]> {
 
 function resolveBase(): string | undefined {
   if (process.env.TIA_BASE) return process.env.TIA_BASE;
-  const result = requireBase('git', [
-    'rev-parse',
-    '--verify',
-    'baseline/full-suite',
-  ]);
+  const result = requireBase('git', ['rev-parse', '--verify', 'main']);
   return result;
 }
 
@@ -116,8 +111,7 @@ async function main(): Promise<void> {
 
   if (!base) {
     fallback = true;
-    reason =
-      'base revision could not be resolved; set TIA_BASE or create baseline/full-suite';
+    reason = 'base revision could not be resolved; set TIA_BASE or create main';
   } else {
     const diff = await run('git', [
       'diff',
@@ -170,19 +164,16 @@ async function main(): Promise<void> {
   let output = '';
   if (fallback) {
     console.log(`[TIA/RTS] fallback: ${reason}`);
-    const result = await run(packageManager.command, [
-      ...packageManager.prefix,
-      'test:ci',
-    ]);
+    const result = await run('npm', ['run', 'test:ci']);
     output = `${result.stdout}\n${result.stderr}`;
     exitCode = result.code;
   } else {
     console.log(
       `[TIA/RTS] related source files: ${productionFiles.join(', ')}`,
     );
-    const result = await run(packageManager.command, [
-      ...packageManager.prefix,
+    const result = await run('npm', [
       'exec',
+      '--',
       'vitest',
       'related',
       '--run',
@@ -195,10 +186,7 @@ async function main(): Promise<void> {
       fallback = true;
       reason = 'related selection returned no identifiable tests';
       console.log(`[TIA/RTS] fallback: ${reason}`);
-      const fallbackResult = await run(packageManager.command, [
-        ...packageManager.prefix,
-        'test:ci',
-      ]);
+      const fallbackResult = await run('npm', ['run', 'test:ci']);
       output = `${fallbackResult.stdout}\n${fallbackResult.stderr}`;
       exitCode = fallbackResult.code;
     }

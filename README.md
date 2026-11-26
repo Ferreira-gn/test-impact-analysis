@@ -31,14 +31,14 @@ npm run validate
 ## TIA/RTS
 
 ```fish
-env TIA_BASE=baseline/full-suite npm run test:affected
+env TIA_BASE=main npm run test:affected
 ```
 
 O seletor usa `git diff --name-status -M` e `vitest related --run`. Configuração, testes, manifests, infraestrutura compartilhada, alterações incertas, renomeações, exclusões e seleção vazia acionam fallback para `npm run test:ci`. Veja [`docs/tia-rts-algorithm.md`](docs/tia-rts-algorithm.md).
 
 ## Branches do experimento
 
-- `baseline/full-suite`: workflow tradicional e `npm run test:ci`.
+- `main`: workflow tradicional e `npm run test:ci` após cada merge.
 - `experiment/tia-rts`: workflow seletivo e `npm run test:affected`, com fallback seguro.
 
 As branches compartilham a aplicação, testes, dependências e patch experimental. As diferenças ficam no pipeline e na estratégia de execução. Não há push automático.

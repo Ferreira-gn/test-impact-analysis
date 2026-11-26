@@ -25,7 +25,7 @@ jobs:
       - run: npm run build
       - name: Select and run affected tests
         env:
-          TIA_BASE: ${{ github.event.before }}
+          TIA_BASE: origin/main
         run: npm run test:affected
       - uses: actions/upload-artifact@v4
         with:
